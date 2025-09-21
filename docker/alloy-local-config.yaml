@@ -1,0 +1,47 @@
+discovery.docker "app_scrape" {
+    host             = "unix:///var/run/docker.sock"
+    refresh_interval = "5s"
+}
+
+discovery.relabel "app_scrape" {
+    targets = []
+    rule {
+        source_labels = ["__meta_docker_container_name"]
+        regex         = "/(.*)"
+        target_label  = "container"
+    }
+    rule {
+        source_labels = ["__meta_docker_container_name"]
+        regex         = "/employes_service"
+        action        = "keep"
+    }
+}
+
+loki.source.docker "app_scrape" {
+    host             = "unix:///var/run/docker.sock"
+    targets          = discovery.docker.app_scrape.targets
+    forward_to       = [loki.write.default.receiver]
+    relabel_rules    = discovery.relabel.app_scrape.rules
+    refresh_interval = "5s"
+}
+
+loki.source.file "app_logs" {
+    targets = [
+        {
+            __path__   = "/logs/server.log",
+            job        = "employes_service",
+            container  = "employes_service",
+        },
+    ]
+    forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+    endpoint {
+        url       = "http://gateway:3100/loki/api/v1/push"
+        tenant_id = "tenant1"
+    }
+    external_labels = {
+        job = "employes_service",
+    }
+}

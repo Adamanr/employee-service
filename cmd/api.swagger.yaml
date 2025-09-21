@@ -1,0 +1,692 @@
+openapi: 3.0.3
+info:
+  title: Employee Service API
+  description: API для управления профилями сотрудников, организационной структурой, авторизацией и другими операциями.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Локальный сервер
+tags:
+  - name: auth
+    description: Operations for authentificate user
+  - name: employees
+    description: Operations for work with employee
+  - name: departament
+    description: Operations for work with departaments
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ApiResponseBase:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        type:
+          type: string
+          enum: [success, error]
+          example: success
+      required:
+        - status
+        - type
+    ApiErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Invalid request body"
+              additionalProperties: true
+          required:
+            - data
+    Employee:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - role
+        - status
+      properties:
+        id:
+          type: integer
+          format: uint
+          description: Уникальный идентификатор сотрудника
+        first_name:
+          type: string
+          description: Имя сотрудника
+        last_name:
+          type: string
+          description: Фамилия сотрудника
+        middle_name:
+          type: string
+          nullable: true
+          description: Отчество сотрудника
+        phone:
+          type: string
+          nullable: true
+          description: Телефон сотрудника
+        personal_number:
+          type: string
+          nullable: true
+          description: Табельный номер (уникальный)
+        email:
+          type: string
+          nullable: true
+          description: Email сотрудника (уникальный)
+        password:
+          type: string
+          nullable: true
+          description: Password сотрудника
+        role:
+          type: string
+          enum: [admin, hr, manager, employee]
+          description: Роль сотрудника
+        is_active:
+          type: boolean
+          default: true
+          description: Активен ли сотрудник
+        department_id:
+          type: integer
+          format: uint
+          nullable: true
+          description: ID департамента
+        position:
+          type: string
+          nullable: true
+          description: Должность сотрудника
+        manager_id:
+          type: integer
+          format: uint
+          nullable: true
+          description: ID руководителя
+        hire_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата приема на работу
+        fire_date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата увольнения
+        birthday:
+          type: string
+          format: date-time
+          nullable: true
+          description: Дата рождения
+        address:
+          type: string
+          nullable: true
+          description: Адрес сотрудника
+        vacation_days:
+          type: integer
+          default: 28
+          description: Количество дней отпуска
+        sick_days:
+          type: integer
+          default: 0
+          description: Количество больничных дней
+        status:
+          type: string
+          enum: [active, fired, suspended]
+          default: active
+          description: Статус сотрудника
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания записи
+        updated_at:
+          type: string
+          format: date-time
+          description: Дата последнего обновления
+    Department:
+      type: object
+      required:
+        - name
+      properties:
+        id:
+          type: integer
+          format: uint
+          description: Уникальный идентификатор департамента
+        name:
+          type: string
+          description: Название департамента
+        description:
+          type: string
+          nullable: true
+          description: Описание департамента
+        parent_id:
+          type: integer
+          format: uint
+          nullable: true
+          description: ID родительского департамента
+        head_id:
+          type: integer
+          format: uint
+          nullable: true
+          description: ID руководителя департамента
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания записи
+        updated_at:
+          type: string
+          format: date-time
+          description: Дата последнего обновления
+    DepartmentForm:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название департамента
+        description:
+          type: string
+          nullable: true
+          description: Описание департамента
+        parent_id:
+          type: integer
+          format: uint
+          nullable: true
+          description: ID родительского департамента
+        head_id:
+          type: integer
+          format: uint
+          nullable: true
+          description: ID руководителя департамента
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          description: Email сотрудника
+        password:
+          type: string
+          description: Пароль сотрудника
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT токен для авторизации
+
+    VacationRequest:
+      type: object
+      required:
+        - days
+      properties:
+        days:
+          type: integer
+          description: Количество дней отпуска
+paths:
+  /auth/register:
+    post:
+      tags: 
+        - auth
+      summary: Регистрация нового сотрудника
+      description: Создает нового сотрудника с ролью employee. Доступно для admin и hr.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+      responses:
+        '201':
+          description: Сотрудник успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /auth/login:
+    post:
+      tags: 
+        - auth
+      summary: Вход в систему
+      description: Аутентификация сотрудника и выдача JWT токена.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '401':
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /auth/logout:
+    post:
+      tags: 
+        - auth
+      summary: Выход из системы
+      description: Инвалидация текущего JWT токена (реализация на стороне клиента).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /employees:
+    get:
+      tags: 
+        - employees
+      summary: Получение списка сотрудников
+      description: Возвращает список всех сотрудников. Доступно для admin и hr.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          description: Фильтр по роли (admin, hr, manager, employee)
+          schema:
+            type: string
+        - name: department_id
+          in: query
+          description: Фильтр по ID департамента
+          schema:
+            type: integer
+        - name: status
+          in: query
+          description: Фильтр по статусу (active, fired, suspended)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список сотрудников
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    post:
+      tags: 
+        - employees
+      summary: Создание сотрудника
+      description: Создает нового сотрудника. Доступно для admin и hr.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+      responses:
+        '201':
+          description: Сотрудник создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /employees/{id}:
+    get:
+      tags: 
+        - employees
+      summary: Получение сотрудника по ID
+      description: Возвращает данные сотрудника по его ID. Доступно для admin, hr, и самого сотрудника.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Данные сотрудника
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Сотрудник не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    put:
+      tags: 
+        - employees
+      summary: Обновление сотрудника
+      description: Обновляет данные сотрудника. Доступно для admin, hr, и самого сотрудника (ограниченно).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Employee'
+      responses:
+        '200':
+          description: Сотрудник обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Сотрудник не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    delete:
+      tags: 
+        - employees
+      summary: Удаление сотрудника
+      description: Удаляет сотрудника (или переводит в статус fired). Доступно для admin и hr.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Сотрудник удален
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Сотрудник не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /employees/{id}/vacation:
+    post:
+      tags: 
+        - employees
+      summary: Запрос отпуска
+      description: Добавляет дни отпуска сотруднику. Доступно для admin, hr, и самого сотрудника.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VacationRequest'
+      responses:
+        '200':
+          description: Отпуск добавлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Сотрудник не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /departments:
+    get:
+      tags: 
+        - departament
+      summary: Получение списка департаментов
+      description: Возвращает список всех департаментов. Доступно для всех авторизованных пользователей.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список департаментов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    post:
+      tags: 
+        - departament
+      summary: Создание департамента
+      description: Создает новый департамент. Доступно для admin и hr.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentForm'
+      responses:
+        '201':
+          description: Департамент создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /departments/{id}:
+    get:
+      tags: 
+        - departament
+      summary: Получение департамента по ID
+      description: Возвращает данные департамента по его ID. Доступно для всех авторизованных пользователей.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Данные департамента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'  
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Департамент не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    put:
+      tags: 
+        - departament
+      summary: Обновление департамента
+      description: Обновляет данные департамента. Доступно для admin и hr.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentForm'
+      responses:
+        '200':
+          description: Департамент обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase' 
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Департамент не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    delete:
+      tags: 
+        - departament
+      summary: Удаление департамента
+      description: Удаляет департамент. Доступно для admin.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Департамент удален
+        '401':
+          description: Неавторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Департамент не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+security:
+  - bearerAuth: []

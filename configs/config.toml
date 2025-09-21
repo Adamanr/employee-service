@@ -1,0 +1,17 @@
+[server]
+host = "0.0.0.0:8080"
+jwt_secret = "iLbsKq6ca5k5xBtmGNTqkcN7zSndnSu7g0d6I1kqVaU="
+
+[database]
+host = "postgres"  
+user = "postgres"
+password = "admin21"
+database = "employee_dev"
+port = "5432"  #
+
+[redis]
+redis_addr = "redis:6379"  
+redis_password = "redis_password123"
+redisdb = 0
+access_token_ttl = "24h"
+refresh_token_ttl = "168h"
