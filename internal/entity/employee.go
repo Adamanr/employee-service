@@ -5,17 +5,17 @@ import (
 )
 
 type Employee struct {
-	ID             uint   `json:"id" gorm:"primaryKey"`
-	FirstName      string `json:"first_name" gorm:"not null"`
-	LastName       string `json:"last_name" gorm:"not null"`
+	ID             uint   `json:"id"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
 	MiddleName     string `json:"middle_name"`
 	Phone          string `json:"phone"`
-	PersonalNumber string `json:"personal_number" gorm:"uniqueIndex"`
+	PersonalNumber string `json:"personal_number"`
 
-	Email        string `json:"email" gorm:"uniqueIndex"`
+	Email        string `json:"email"`
 	PasswordHash string `json:"-"`
-	Role         string `json:"role" gorm:"not null"`
-	IsActive     bool   `json:"is_active" gorm:"default:true"`
+	Role         string `json:"role" `
+	IsActive     bool   `json:"is_active"`
 
 	DepartmentID uint   `json:"department_id"`
 	Position     string `json:"position"`
@@ -27,10 +27,10 @@ type Employee struct {
 	Birthday *time.Time `json:"birthday"`
 	Address  string     `json:"address"`
 
-	VacationDays int `json:"vacation_days" gorm:"default:28"`
-	SickDays     int `json:"sick_days" gorm:"default:0"`
+	VacationDays int `json:"vacation_days"`
+	SickDays     int `json:"sick_days"`
 
-	Status    string    `json:"status" gorm:"default:active"`
+	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

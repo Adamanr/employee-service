@@ -11,8 +11,8 @@ tags:
     description: Operations for authentificate user
   - name: employees
     description: Operations for work with employee
-  - name: departament
-    description: Operations for work with departaments
+  - name: department
+    description: Operations for work with departments
 components:
   securitySchemes:
     bearerAuth:
@@ -232,43 +232,11 @@ components:
           type: integer
           description: Количество дней отпуска
 paths:
-  /auth/register:
-    post:
-      tags: 
-        - auth
-      summary: Регистрация нового сотрудника
-      description: Создает нового сотрудника с ролью employee. Доступно для admin и hr.
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Employee'
-      responses:
-        '201':
-          description: Сотрудник успешно создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponseBase'
-        '400':
-          description: Неверный запрос
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
-        '401':
-          description: Неавторизован
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
   /auth/login:
     post:
       tags: 
         - auth
+      operationId: AuthLogin
       summary: Вход в систему
       description: Аутентификация сотрудника и выдача JWT токена.
       requestBody:
@@ -294,6 +262,7 @@ paths:
     post:
       tags: 
         - auth
+      operationId: AuthLogout
       summary: Выход из системы
       description: Инвалидация текущего JWT токена (реализация на стороне клиента).
       security:
@@ -315,6 +284,7 @@ paths:
     get:
       tags: 
         - employees
+      operationId: GetEmployees
       summary: Получение списка сотрудников
       description: Возвращает список всех сотрудников. Доступно для admin и hr.
       security:
@@ -351,6 +321,7 @@ paths:
     post:
       tags: 
         - employees
+      operationId: CreateEmployee
       summary: Создание сотрудника
       description: Создает нового сотрудника. Доступно для admin и hr.
       security:
@@ -384,6 +355,7 @@ paths:
     get:
       tags: 
         - employees
+      operationId: GetEmployeesByID
       summary: Получение сотрудника по ID
       description: Возвращает данные сотрудника по его ID. Доступно для admin, hr, и самого сотрудника.
       security:
@@ -416,6 +388,7 @@ paths:
     put:
       tags: 
         - employees
+      operationId: UpdateEmployee
       summary: Обновление сотрудника
       description: Обновляет данные сотрудника. Доступно для admin, hr, и самого сотрудника (ограниченно).
       security:
@@ -460,6 +433,7 @@ paths:
     delete:
       tags: 
         - employees
+      operationId: DeleteEmployee
       summary: Удаление сотрудника
       description: Удаляет сотрудника (или переводит в статус fired). Доступно для admin и hr.
       security:
@@ -489,6 +463,7 @@ paths:
     post:
       tags: 
         - employees
+      operationId: RequestVacation
       summary: Запрос отпуска
       description: Добавляет дни отпуска сотруднику. Доступно для admin, hr, и самого сотрудника.
       security:
@@ -533,7 +508,8 @@ paths:
   /departments:
     get:
       tags: 
-        - departament
+        - department
+      operationId: GetDepartments
       summary: Получение списка департаментов
       description: Возвращает список всех департаментов. Доступно для всех авторизованных пользователей.
       security:
@@ -553,7 +529,8 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
     post:
       tags: 
-        - departament
+        - department
+      operationId: CreateDepartment
       summary: Создание департамента
       description: Создает новый департамент. Доступно для admin и hr.
       security:
@@ -586,7 +563,8 @@ paths:
   /departments/{id}:
     get:
       tags: 
-        - departament
+        - department
+      operationId: GetDepartmentByID
       summary: Получение департамента по ID
       description: Возвращает данные департамента по его ID. Доступно для всех авторизованных пользователей.
       security:
@@ -618,7 +596,8 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
     put:
       tags: 
-        - departament
+        - department
+      operationId: UpdateDepartment
       summary: Обновление департамента
       description: Обновляет данные департамента. Доступно для admin и hr.
       security:
@@ -662,7 +641,8 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
     delete:
       tags: 
-        - departament
+        - department
+      operationId: DeleteDepartment
       summary: Удаление департамента
       description: Удаляет департамент. Доступно для admin.
       security:

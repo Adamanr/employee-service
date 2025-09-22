@@ -1,5 +1,4 @@
-// internal/logging/logger.go
-package utils
+package logging
 
 import (
 	"context"
@@ -16,14 +15,20 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
+const (
+	MaxSize    = 100
+	MaxBackups = 3
+	MaxAge     = 28
+)
+
 type CustomHandler struct {
-	jsonHandler *slog.JSONHandler
+	handler slog.Handler
 }
 
-func NewCustomHandler(consoleWriter io.Writer, fileWriter io.Writer, level slog.Level) *CustomHandler {
-	jsonHandler := slog.NewJSONHandler(fileWriter, &slog.HandlerOptions{
+func NewCustomHandler(_ io.Writer, fileWriter io.Writer, level slog.Level) *CustomHandler {
+	handler := slog.NewJSONHandler(fileWriter, &slog.HandlerOptions{
 		Level: level,
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+		ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr {
 			if a.Key == slog.TimeKey {
 				return slog.Attr{Key: "timestamp", Value: slog.StringValue(a.Value.Time().Format(time.RFC3339))}
 			}
@@ -33,15 +38,15 @@ func NewCustomHandler(consoleWriter io.Writer, fileWriter io.Writer, level slog.
 			return a
 		},
 	})
-	return &CustomHandler{jsonHandler: jsonHandler}
+	return &CustomHandler{handler: handler}
 }
 
-func (h *CustomHandler) Enabled(_ context.Context, level slog.Level) bool {
-	return h.jsonHandler.Enabled(context.Background(), level)
+func (h *CustomHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	return h.handler.Enabled(ctx, level)
 }
 
 func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
-	if err := h.jsonHandler.Handle(ctx, r); err != nil {
+	if err := h.handler.Handle(ctx, r); err != nil {
 		return err
 	}
 
@@ -73,36 +78,38 @@ func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
 		message = fmt.Sprintf("%s %s", message, attrStr)
 	}
 
-	fmt.Fprintf(os.Stdout, "%s %s %s\n",
+	if _, err := fmt.Fprintf(os.Stdout, "%s %s %s\n",
 		color.New(color.FgBlue).Sprintf("%s", timeStr),
 		colorFn("%-6s", levelStr),
 		message,
-	)
+	); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func (h *CustomHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &CustomHandler{jsonHandler: h.jsonHandler.WithAttrs(attrs).(*slog.JSONHandler)}
+	return &CustomHandler{handler: h.handler.WithAttrs(attrs)}
 }
 
 func (h *CustomHandler) WithGroup(name string) slog.Handler {
-	return &CustomHandler{jsonHandler: h.jsonHandler.WithGroup(name).(*slog.JSONHandler)}
+	return &CustomHandler{handler: h.handler.WithGroup(name)}
 }
 
 func SetupLogger(logFilePath string, level slog.Level) (*slog.Logger, error) {
 	logFile := &lumberjack.Logger{
 		Filename:   logFilePath,
-		MaxSize:    100,
-		MaxBackups: 3,
-		MaxAge:     28,
+		MaxSize:    MaxSize,
+		MaxBackups: MaxBackups,
+		MaxAge:     MaxAge,
 		Compress:   true,
 	}
 	handler := NewCustomHandler(os.Stdout, logFile, level)
 	return slog.New(handler), nil
 }
 
-func LoggingMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
+func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()

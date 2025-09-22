@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"errors"
 	"log/slog"
 	"os"
 	"time"
@@ -11,24 +11,27 @@ import (
 
 type Config struct {
 	Server struct {
-		Host      string
-		JWTSecret string `toml:"jwt_secret"`
-	}
+		Host              string        `toml:"host"`
+		WriteTimeout      time.Duration `toml:"write_timeout"`
+		ReadTimeout       time.Duration `toml:"read_timeout"`
+		ReadHeaderTimeout time.Duration `toml:"read_header_timeout"`
+		JWTSecret         string        `toml:"jwt_secret"`
+	} `toml:"server"`
 	Database struct {
-		Host     string
-		User     string
-		Password string
-		Database string
-	}
+		Host     string `toml:"host"`
+		User     string `toml:"user"`
+		Password string `toml:"password"`
+		Database string `toml:"database"`
+	} `toml:"database"`
 	Redis struct {
-		RedisAddr          string `toml:"redis_addr"`
-		RedisPassword      string `toml:"redis_password"`
-		RedisDB            int    `toml:"redis_db"`
-		AccessTokenTTL     time.Duration
-		RefreshTokenTTL    time.Duration
-		StrAccessTokenTTL  string `toml:"access_token_ttl"`
-		StrRefreshTokenTTL string `toml:"refresh_token_ttl"`
-	}
+		RedisAddr          string        `toml:"redis_addr"`
+		RedisPassword      string        `toml:"redis_password"`
+		RedisDB            int           `toml:"redis_db"`
+		AccessTokenTTL     time.Duration `toml:""`
+		RefreshTokenTTL    time.Duration `toml:""`
+		StrAccessTokenTTL  string        `toml:"access_token_ttl"`
+		StrRefreshTokenTTL string        `toml:"refresh_token_ttl"`
+	} `toml:"redis"`
 }
 
 func GetConfig(logger *slog.Logger) (*Config, error) {
@@ -45,17 +48,8 @@ func GetConfig(logger *slog.Logger) (*Config, error) {
 		return nil, tomlErr
 	}
 
-	cfg.Redis.AccessTokenTTL, err = time.ParseDuration(cfg.Redis.StrAccessTokenTTL)
-	if err != nil {
-		return nil, fmt.Errorf("invalid access_token_ttl: %w", err)
-	}
-	cfg.Redis.RefreshTokenTTL, err = time.ParseDuration(cfg.Redis.StrRefreshTokenTTL)
-	if err != nil {
-		return nil, fmt.Errorf("invalid refresh_token_ttl: %w", err)
-	}
-
 	if cfg.Server.JWTSecret == "" {
-		return nil, fmt.Errorf("JWT_SECRET is required")
+		return nil, errors.New("jwt_secret is empty")
 	}
 
 	logger.Info("Config is loaded")

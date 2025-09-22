@@ -187,26 +187,23 @@ type GetEmployeesParams struct {
 	Status *string `form:"status,omitempty" json:"status,omitempty"`
 }
 
-// PostAuthLoginJSONRequestBody defines body for PostAuthLogin for application/json ContentType.
-type PostAuthLoginJSONRequestBody = LoginRequest
+// AuthLoginJSONRequestBody defines body for AuthLogin for application/json ContentType.
+type AuthLoginJSONRequestBody = LoginRequest
 
-// PostAuthRegisterJSONRequestBody defines body for PostAuthRegister for application/json ContentType.
-type PostAuthRegisterJSONRequestBody = Employee
+// CreateDepartmentJSONRequestBody defines body for CreateDepartment for application/json ContentType.
+type CreateDepartmentJSONRequestBody = DepartmentForm
 
-// PostDepartmentsJSONRequestBody defines body for PostDepartments for application/json ContentType.
-type PostDepartmentsJSONRequestBody = DepartmentForm
+// UpdateDepartmentJSONRequestBody defines body for UpdateDepartment for application/json ContentType.
+type UpdateDepartmentJSONRequestBody = DepartmentForm
 
-// PutDepartmentsIdJSONRequestBody defines body for PutDepartmentsId for application/json ContentType.
-type PutDepartmentsIdJSONRequestBody = DepartmentForm
+// CreateEmployeeJSONRequestBody defines body for CreateEmployee for application/json ContentType.
+type CreateEmployeeJSONRequestBody = Employee
 
-// PostEmployeesJSONRequestBody defines body for PostEmployees for application/json ContentType.
-type PostEmployeesJSONRequestBody = Employee
+// UpdateEmployeeJSONRequestBody defines body for UpdateEmployee for application/json ContentType.
+type UpdateEmployeeJSONRequestBody = Employee
 
-// PutEmployeesIdJSONRequestBody defines body for PutEmployeesId for application/json ContentType.
-type PutEmployeesIdJSONRequestBody = Employee
-
-// PostEmployeesIdVacationJSONRequestBody defines body for PostEmployeesIdVacation for application/json ContentType.
-type PostEmployeesIdVacationJSONRequestBody = VacationRequest
+// RequestVacationJSONRequestBody defines body for RequestVacation for application/json ContentType.
+type RequestVacationJSONRequestBody = VacationRequest
 
 // Getter for additional properties for ApiErrorResponse_Data. Returns the specified
 // element and whether it was found
@@ -280,46 +277,43 @@ func (a ApiErrorResponse_Data) MarshalJSON() ([]byte, error) {
 type ServerInterface interface {
 	// Вход в систему
 	// (POST /auth/login)
-	PostAuthLogin(w http.ResponseWriter, r *http.Request)
+	AuthLogin(w http.ResponseWriter, r *http.Request)
 	// Выход из системы
 	// (POST /auth/logout)
-	PostAuthLogout(w http.ResponseWriter, r *http.Request)
-	// Регистрация нового сотрудника
-	// (POST /auth/register)
-	PostAuthRegister(w http.ResponseWriter, r *http.Request)
+	AuthLogout(w http.ResponseWriter, r *http.Request)
 	// Получение списка департаментов
 	// (GET /departments)
 	GetDepartments(w http.ResponseWriter, r *http.Request)
 	// Создание департамента
 	// (POST /departments)
-	PostDepartments(w http.ResponseWriter, r *http.Request)
+	CreateDepartment(w http.ResponseWriter, r *http.Request)
 	// Удаление департамента
 	// (DELETE /departments/{id})
-	DeleteDepartmentsId(w http.ResponseWriter, r *http.Request, id int)
+	DeleteDepartment(w http.ResponseWriter, r *http.Request, id int)
 	// Получение департамента по ID
 	// (GET /departments/{id})
-	GetDepartmentsId(w http.ResponseWriter, r *http.Request, id int)
+	GetDepartmentByID(w http.ResponseWriter, r *http.Request, id int)
 	// Обновление департамента
 	// (PUT /departments/{id})
-	PutDepartmentsId(w http.ResponseWriter, r *http.Request, id int)
+	UpdateDepartment(w http.ResponseWriter, r *http.Request, id int)
 	// Получение списка сотрудников
 	// (GET /employees)
 	GetEmployees(w http.ResponseWriter, r *http.Request, params GetEmployeesParams)
 	// Создание сотрудника
 	// (POST /employees)
-	PostEmployees(w http.ResponseWriter, r *http.Request)
+	CreateEmployee(w http.ResponseWriter, r *http.Request)
 	// Удаление сотрудника
 	// (DELETE /employees/{id})
-	DeleteEmployeesId(w http.ResponseWriter, r *http.Request, id int)
+	DeleteEmployee(w http.ResponseWriter, r *http.Request, id int)
 	// Получение сотрудника по ID
 	// (GET /employees/{id})
-	GetEmployeesId(w http.ResponseWriter, r *http.Request, id int)
+	GetEmployeesByID(w http.ResponseWriter, r *http.Request, id int)
 	// Обновление сотрудника
 	// (PUT /employees/{id})
-	PutEmployeesId(w http.ResponseWriter, r *http.Request, id int)
+	UpdateEmployee(w http.ResponseWriter, r *http.Request, id int)
 	// Запрос отпуска
 	// (POST /employees/{id}/vacation)
-	PostEmployeesIdVacation(w http.ResponseWriter, r *http.Request, id int)
+	RequestVacation(w http.ResponseWriter, r *http.Request, id int)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -328,19 +322,13 @@ type Unimplemented struct{}
 
 // Вход в систему
 // (POST /auth/login)
-func (_ Unimplemented) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) AuthLogin(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Выход из системы
 // (POST /auth/logout)
-func (_ Unimplemented) PostAuthLogout(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Регистрация нового сотрудника
-// (POST /auth/register)
-func (_ Unimplemented) PostAuthRegister(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) AuthLogout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -352,25 +340,25 @@ func (_ Unimplemented) GetDepartments(w http.ResponseWriter, r *http.Request) {
 
 // Создание департамента
 // (POST /departments)
-func (_ Unimplemented) PostDepartments(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Удаление департамента
 // (DELETE /departments/{id})
-func (_ Unimplemented) DeleteDepartmentsId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) DeleteDepartment(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Получение департамента по ID
 // (GET /departments/{id})
-func (_ Unimplemented) GetDepartmentsId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) GetDepartmentByID(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Обновление департамента
 // (PUT /departments/{id})
-func (_ Unimplemented) PutDepartmentsId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) UpdateDepartment(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -382,31 +370,31 @@ func (_ Unimplemented) GetEmployees(w http.ResponseWriter, r *http.Request, para
 
 // Создание сотрудника
 // (POST /employees)
-func (_ Unimplemented) PostEmployees(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) CreateEmployee(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Удаление сотрудника
 // (DELETE /employees/{id})
-func (_ Unimplemented) DeleteEmployeesId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) DeleteEmployee(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Получение сотрудника по ID
 // (GET /employees/{id})
-func (_ Unimplemented) GetEmployeesId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) GetEmployeesByID(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Обновление сотрудника
 // (PUT /employees/{id})
-func (_ Unimplemented) PutEmployeesId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) UpdateEmployee(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Запрос отпуска
 // (POST /employees/{id}/vacation)
-func (_ Unimplemented) PostEmployeesIdVacation(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) RequestVacation(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -419,8 +407,8 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// PostAuthLogin operation middleware
-func (siw *ServerInterfaceWrapper) PostAuthLogin(w http.ResponseWriter, r *http.Request) {
+// AuthLogin operation middleware
+func (siw *ServerInterfaceWrapper) AuthLogin(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -429,7 +417,7 @@ func (siw *ServerInterfaceWrapper) PostAuthLogin(w http.ResponseWriter, r *http.
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostAuthLogin(w, r)
+		siw.Handler.AuthLogin(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -439,8 +427,8 @@ func (siw *ServerInterfaceWrapper) PostAuthLogin(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
-// PostAuthLogout operation middleware
-func (siw *ServerInterfaceWrapper) PostAuthLogout(w http.ResponseWriter, r *http.Request) {
+// AuthLogout operation middleware
+func (siw *ServerInterfaceWrapper) AuthLogout(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -449,27 +437,7 @@ func (siw *ServerInterfaceWrapper) PostAuthLogout(w http.ResponseWriter, r *http
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostAuthLogout(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// PostAuthRegister operation middleware
-func (siw *ServerInterfaceWrapper) PostAuthRegister(w http.ResponseWriter, r *http.Request) {
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostAuthRegister(w, r)
+		siw.Handler.AuthLogout(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -499,8 +467,8 @@ func (siw *ServerInterfaceWrapper) GetDepartments(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// PostDepartments operation middleware
-func (siw *ServerInterfaceWrapper) PostDepartments(w http.ResponseWriter, r *http.Request) {
+// CreateDepartment operation middleware
+func (siw *ServerInterfaceWrapper) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -509,7 +477,7 @@ func (siw *ServerInterfaceWrapper) PostDepartments(w http.ResponseWriter, r *htt
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostDepartments(w, r)
+		siw.Handler.CreateDepartment(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -519,8 +487,8 @@ func (siw *ServerInterfaceWrapper) PostDepartments(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
-// DeleteDepartmentsId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteDepartmentsId(w http.ResponseWriter, r *http.Request) {
+// DeleteDepartment operation middleware
+func (siw *ServerInterfaceWrapper) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -540,7 +508,7 @@ func (siw *ServerInterfaceWrapper) DeleteDepartmentsId(w http.ResponseWriter, r 
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteDepartmentsId(w, r, id)
+		siw.Handler.DeleteDepartment(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -550,8 +518,8 @@ func (siw *ServerInterfaceWrapper) DeleteDepartmentsId(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
-// GetDepartmentsId operation middleware
-func (siw *ServerInterfaceWrapper) GetDepartmentsId(w http.ResponseWriter, r *http.Request) {
+// GetDepartmentByID operation middleware
+func (siw *ServerInterfaceWrapper) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -571,7 +539,7 @@ func (siw *ServerInterfaceWrapper) GetDepartmentsId(w http.ResponseWriter, r *ht
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetDepartmentsId(w, r, id)
+		siw.Handler.GetDepartmentByID(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -581,8 +549,8 @@ func (siw *ServerInterfaceWrapper) GetDepartmentsId(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// PutDepartmentsId operation middleware
-func (siw *ServerInterfaceWrapper) PutDepartmentsId(w http.ResponseWriter, r *http.Request) {
+// UpdateDepartment operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -602,7 +570,7 @@ func (siw *ServerInterfaceWrapper) PutDepartmentsId(w http.ResponseWriter, r *ht
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PutDepartmentsId(w, r, id)
+		siw.Handler.UpdateDepartment(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -661,8 +629,8 @@ func (siw *ServerInterfaceWrapper) GetEmployees(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// PostEmployees operation middleware
-func (siw *ServerInterfaceWrapper) PostEmployees(w http.ResponseWriter, r *http.Request) {
+// CreateEmployee operation middleware
+func (siw *ServerInterfaceWrapper) CreateEmployee(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
@@ -671,7 +639,7 @@ func (siw *ServerInterfaceWrapper) PostEmployees(w http.ResponseWriter, r *http.
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostEmployees(w, r)
+		siw.Handler.CreateEmployee(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -681,8 +649,8 @@ func (siw *ServerInterfaceWrapper) PostEmployees(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
-// DeleteEmployeesId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteEmployeesId(w http.ResponseWriter, r *http.Request) {
+// DeleteEmployee operation middleware
+func (siw *ServerInterfaceWrapper) DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -702,7 +670,7 @@ func (siw *ServerInterfaceWrapper) DeleteEmployeesId(w http.ResponseWriter, r *h
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteEmployeesId(w, r, id)
+		siw.Handler.DeleteEmployee(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -712,8 +680,8 @@ func (siw *ServerInterfaceWrapper) DeleteEmployeesId(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
-// GetEmployeesId operation middleware
-func (siw *ServerInterfaceWrapper) GetEmployeesId(w http.ResponseWriter, r *http.Request) {
+// GetEmployeesByID operation middleware
+func (siw *ServerInterfaceWrapper) GetEmployeesByID(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -733,7 +701,7 @@ func (siw *ServerInterfaceWrapper) GetEmployeesId(w http.ResponseWriter, r *http
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetEmployeesId(w, r, id)
+		siw.Handler.GetEmployeesByID(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -743,8 +711,8 @@ func (siw *ServerInterfaceWrapper) GetEmployeesId(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// PutEmployeesId operation middleware
-func (siw *ServerInterfaceWrapper) PutEmployeesId(w http.ResponseWriter, r *http.Request) {
+// UpdateEmployee operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -764,7 +732,7 @@ func (siw *ServerInterfaceWrapper) PutEmployeesId(w http.ResponseWriter, r *http
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PutEmployeesId(w, r, id)
+		siw.Handler.UpdateEmployee(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -774,8 +742,8 @@ func (siw *ServerInterfaceWrapper) PutEmployeesId(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// PostEmployeesIdVacation operation middleware
-func (siw *ServerInterfaceWrapper) PostEmployeesIdVacation(w http.ResponseWriter, r *http.Request) {
+// RequestVacation operation middleware
+func (siw *ServerInterfaceWrapper) RequestVacation(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -795,7 +763,7 @@ func (siw *ServerInterfaceWrapper) PostEmployeesIdVacation(w http.ResponseWriter
 	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostEmployeesIdVacation(w, r, id)
+		siw.Handler.RequestVacation(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -919,46 +887,43 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/auth/login", wrapper.PostAuthLogin)
+		r.Post(options.BaseURL+"/auth/login", wrapper.AuthLogin)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/auth/logout", wrapper.PostAuthLogout)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/auth/register", wrapper.PostAuthRegister)
+		r.Post(options.BaseURL+"/auth/logout", wrapper.AuthLogout)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/departments", wrapper.GetDepartments)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/departments", wrapper.PostDepartments)
+		r.Post(options.BaseURL+"/departments", wrapper.CreateDepartment)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/departments/{id}", wrapper.DeleteDepartmentsId)
+		r.Delete(options.BaseURL+"/departments/{id}", wrapper.DeleteDepartment)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/departments/{id}", wrapper.GetDepartmentsId)
+		r.Get(options.BaseURL+"/departments/{id}", wrapper.GetDepartmentByID)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/departments/{id}", wrapper.PutDepartmentsId)
+		r.Put(options.BaseURL+"/departments/{id}", wrapper.UpdateDepartment)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/employees", wrapper.GetEmployees)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/employees", wrapper.PostEmployees)
+		r.Post(options.BaseURL+"/employees", wrapper.CreateEmployee)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/employees/{id}", wrapper.DeleteEmployeesId)
+		r.Delete(options.BaseURL+"/employees/{id}", wrapper.DeleteEmployee)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/employees/{id}", wrapper.GetEmployeesId)
+		r.Get(options.BaseURL+"/employees/{id}", wrapper.GetEmployeesByID)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/employees/{id}", wrapper.PutEmployeesId)
+		r.Put(options.BaseURL+"/employees/{id}", wrapper.UpdateEmployee)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/employees/{id}/vacation", wrapper.PostEmployeesIdVacation)
+		r.Post(options.BaseURL+"/employees/{id}/vacation", wrapper.RequestVacation)
 	})
 
 	return r

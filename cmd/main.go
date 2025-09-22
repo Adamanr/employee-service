@@ -4,11 +4,11 @@ import (
 	"employes_service/internal/api"
 	"employes_service/internal/config"
 	"employes_service/internal/database"
-	"employes_service/internal/utils"
-	"fmt"
+	logging "employes_service/internal/utils"
 	"log"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	logger, err := utils.SetupLogger("server.log", slog.LevelInfo)
+	logger, err := logging.SetupLogger("server.log", slog.LevelInfo)
 	if err != nil {
 		log.Fatal("Failed to setup logger:", err)
 		return
@@ -55,12 +55,12 @@ func main() {
 
 	r.Use(middleware.RequestID)
 
-	r.Use(utils.LoggingMiddleware(logger))
+	r.Use(logging.Middleware(logger))
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 			next.ServeHTTP(ww, r)
-			httpRequestsTotal.WithLabelValues(r.URL.Path, r.Method, fmt.Sprint(ww.Status())).Inc()
+			httpRequestsTotal.WithLabelValues(r.URL.Path, r.Method, strconv.Itoa(ww.Status())).Inc()
 		})
 	})
 
@@ -70,8 +70,11 @@ func main() {
 	h := api.HandlerFromMux(server, r)
 
 	s := &http.Server{
-		Handler: h,
-		Addr:    cfg.Server.Host,
+		Handler:           h,
+		Addr:              cfg.Server.Host,
+		WriteTimeout:      cfg.Server.WriteTimeout,
+		ReadTimeout:       cfg.Server.ReadTimeout,
+		ReadHeaderTimeout: cfg.Server.ReadHeaderTimeout,
 	}
 
 	logger.Info("Server is starting", slog.String("address", cfg.Server.Host))
