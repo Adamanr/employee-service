@@ -4,7 +4,7 @@
 [![API Version](https://img.shields.io/badge/API-v1.0.0-green.svg)](./cmd/api.swagger.yaml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Employee Service** — это микросервис для управления сотрудниками в рамках системы HRGate. Сервис обеспечивает полный цикл управления профилями сотрудников, организационной структурой, авторизацией и мониторингом.
+**Employee Service** — это современный микросервис для управления сотрудниками в рамках системы HRGate. Сервис обеспечивает полный цикл управления профилями сотрудников, организационной структурой, авторизацией и мониторингом через REST API и gRPC интерфейсы.
 
 ## 📋 Содержание
 
@@ -13,6 +13,8 @@
 - [🚀 Быстрый старт](#-быстрый-старт)
 - [⚙️ Конфигурация](#️-конфигурация)
 - [📝 API Документация](#-api-документация)
+  - [REST API](#основные-эндпоинты)
+  - [gRPC API](#grpc-api)
 - [🔒 Авторизация](#-авторизация)
 - [📊 Мониторинг](#-мониторинг)
 - [🧪 Тестирование](#-тестирование)
@@ -38,6 +40,13 @@
 - ✅ **Защищенные эндпоинты** с проверкой прав доступа
 - ✅ **Redis кэширование** для сессий
 
+### 🚀 API и Производительность
+- ✅ **Dual API**: REST API + gRPC для разных сценариев использования
+- ✅ **Protocol Buffers** для эффективной сериализации
+- ✅ **gRPC Gateway** для HTTP/JSON транскодинга
+- ✅ **OpenAPI 3.0** спецификация для REST API
+- ✅ **Типизированные клиенты** для многих языков программирования
+
 ### 📊 Мониторинг и логирование
 - ✅ **Prometheus метрики** для мониторинга производительности
 - ✅ **Grafana дашборды** для визуализации
@@ -49,12 +58,17 @@
 
 ```mermaid
 graph TB
-    A[Client] --> B[Employee Service :8080]
+    A[REST Client] --> B[Employee Service :8080]
+    A1[gRPC Client] --> B1[Employee Service gRPC :50051]
     B --> C[PostgreSQL :5432]
+    B1 --> C
     B --> D[Redis :6379]
+    B1 --> D
     B --> E[Prometheus :9090]
+    B1 --> E
     E --> F[Grafana :3000]
     B --> G[Loki Gateway :3100]
+    B1 --> G
     G --> H[Loki Read]
     G --> I[Loki Write]
     H --> J[MinIO Storage]
@@ -63,12 +77,13 @@ graph TB
 
 ### Технологический стек:
 - **Backend**: Go 1.23.3 с Chi router
+- **API**: REST API (OpenAPI 3.0) + gRPC с Protocol Buffers
+- **gRPC Gateway**: HTTP/JSON транскодинг для gRPC методов
 - **База данных**: PostgreSQL с миграциями
 - **Кэш**: Redis для сессий и токенов
 - **Мониторинг**: Prometheus + Grafana
 - **Логирование**: Loki + Grafana Alloy
 - **Контейнеризация**: Docker + Docker Compose
-- **API**: OpenAPI 3.0 спецификация
 
 ## 🚀 Быстрый старт
 
@@ -102,7 +117,8 @@ curl http://localhost:8080/metrics
 ```
 
 ### 4. Доступ к веб-интерфейсам
-- **Employee Service API**: http://localhost:8080
+- **Employee Service REST API**: http://localhost:8080
+- **Employee Service gRPC**: localhost:50051
 - **Grafana Dashboard**: http://localhost:3000 (admin/admin)
 - **Prometheus**: http://localhost:9090
 - **Swagger UI**: http://localhost:8080/swagger/
@@ -113,7 +129,8 @@ curl http://localhost:8080/metrics
 
 ```toml
 [server]
-host = "0.0.0.0:8080"
+host = "0.0.0.0:8080"        # REST API сервер
+grpc_host = "0.0.0.0:50051"  # gRPC сервер
 jwt_secret = "your-secret-key"
 write_timeout = "10s"
 read_timeout = "10s"
@@ -194,6 +211,59 @@ curl -X POST http://localhost:8080/api/v1/employees \
     "status": "active"
   }'
 ```
+
+### gRPC API
+
+📡 **gRPC сервис работает на порту 50051** и поддерживает все те же операции, что и REST API.
+
+#### Особенности gRPC реализации:
+- ✅ **Protocol Buffers** для эффективной сериализации
+- ✅ **gRPC Gateway** для HTTP/JSON транскодинга
+- ✅ **Быстродействие** и малый размер сообщений
+- ✅ **Обратная совместимость** схемы
+- ✅ **Типизированные клиенты** для различных языков
+
+#### Protocol Buffers спецификация:
+Спецификация gRPC сервиса находится в файле:
+```
+internal/api/grpc/configs/employee_service.proto
+```
+
+#### Пример использования gRPC с grpcurl:
+
+```bash
+# Проверка доступных методов
+grpcurl -plaintext localhost:50051 list
+
+# Получение схемы сервиса
+grpcurl -plaintext localhost:50051 describe employee_service.EmployeeService
+
+# Пример авторизации
+grpcurl -plaintext -d '{
+  "email": "admin@company.com",
+  "password": "password123"
+}' localhost:50051 employee_service.EmployeeService/AuthLogin
+
+# Получение списка сотрудников
+grpcurl -plaintext -d '{}' localhost:50051 employee_service.EmployeeService/GetEmployees
+```
+
+#### Генерация gRPC кода:
+
+```bash
+# Обновление зависимостей Protocol Buffers
+cd internal/api/grpc/configs
+buf dep update
+
+# Генерация Go кода из .proto файлов
+buf generate
+```
+
+#### Преимущества gRPC перед REST:
+- 🚀 **Производительность**: бинарные данные + HTTP/2
+- 📝 **Строгая типизация**: определение схемы в .proto
+- 🔄 **Streaming**: поддержка стриминга данных
+- 🌐 **Мультиязычность**: кодогенерация для 10+ языков
 
 ## 🔒 Авторизация
 
@@ -287,7 +357,18 @@ employee-service/
 │   ├── 📄 docker-compose.yaml # Полный стек сервисов
 │   └── 📄 *.yaml              # Конфигурации мониторинга
 ├── 📁 internal/               # Внутренняя логика приложения
-│   ├── 📁 api/                # HTTP обработчики и маршруты
+│   ├── 📁 api/                # API слой (обработчики и маршруты)
+│   │   ├── 📁 rest/           # REST API обработчики
+│   │   └── 📁 grpc/           # gRPC сервер и обработчики
+│   │       ├── 📁 configs/    # Protocol Buffers спецификации
+│   │       │   ├── 📄 employee_service.proto  # gRPC сервис определение
+│   │       │   ├── 📄 buf.yaml              # Buf конфигурация
+│   │       │   └── 📄 buf.lock              # Buf зависимости
+│   │       ├── 📁 proto/       # Сгенерированные Go файлы
+│   │       │   ├── 📄 *.pb.go           # Protocol Buffers структуры
+│   │       │   ├── 📄 *_grpc.pb.go      # gRPC клиент и сервер
+│   │       │   └── 📄 *.pb.gw.go        # gRPC Gateway код
+│   │       └── 📄 server.go       # gRPC сервер реализация
 │   ├── 📁 config/             # Загрузка конфигурации
 │   ├── 📁 database/           # Подключения к БД и Redis
 │   ├── 📁 models/             # Модели данных
