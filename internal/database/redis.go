@@ -2,8 +2,9 @@ package database
 
 import (
 	"context"
-	"employes_service/internal/config"
 	"log/slog"
+
+	"github.com/adamanr/employes_service/internal/config"
 
 	"github.com/redis/go-redis/v9"
 )

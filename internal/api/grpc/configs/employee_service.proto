@@ -1,0 +1,238 @@
+syntax = "proto3";
+
+package employee_service;
+
+option go_package = "github.com/adamanr/employes_service/proto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+
+// ApiResponse is a generic response wrapper for all API calls.
+message ApiResponse {
+  int64 status = 1;
+  string type = 2; // "success" or "error"
+  google.protobuf.Any data = 3; // Contains specific response data or error message
+}
+
+// ErrorData represents the error message in error responses.
+message ErrorData {
+  string error = 1;
+}
+
+// Employee represents an employee entity.
+message Employee {
+  uint64 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  optional string middle_name = 4;
+  optional string phone = 5;
+  optional string personal_number = 6;
+  optional string email = 7;
+  optional string password = 8;
+  string role = 9; // "admin", "hr", "manager", "employee"
+  bool is_active = 10;
+  optional uint64 department_id = 11;
+  optional string position = 12;
+  optional uint64 manager_id = 13;
+  optional google.protobuf.Timestamp hire_date = 14;
+  optional google.protobuf.Timestamp fire_date = 15;
+  optional google.protobuf.Timestamp birthday = 16;
+  optional string address = 17;
+  uint64 vacation_days = 18;
+  uint64 sick_days = 19;
+  string status = 20; // "active", "fired", "suspended"
+  google.protobuf.Timestamp created_at = 21;
+  google.protobuf.Timestamp updated_at = 22;
+}
+
+// Department represents a department entity.
+message Department {
+  uint64 id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional uint64 parent_id = 4;
+  optional uint64 head_id = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// DepartmentForm represents the input for creating/updating a department.
+message DepartmentForm {
+  string name = 1;
+  optional string description = 2;
+  optional uint64 parent_id = 3;
+  optional uint64 head_id = 4;
+}
+
+// LoginRequest represents the input for authentication.
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+// LoginResponse contains the JWT tokens.
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// VacationRequest represents a request to add vacation days.
+message VacationRequest {
+  uint64 days = 1;
+}
+
+// GetEmployeesRequest contains filters for querying employees.
+message GetEmployeesRequest {
+  optional string role = 1;
+  optional uint64 department_id = 2;
+  optional string status = 3;
+}
+
+// GetEmployeesResponse contains a list of employees.
+message GetEmployeesResponse {
+  repeated Employee employees = 1;
+}
+
+// GetDepartmentsResponse contains a list of departments.
+message GetDepartmentsResponse {
+  repeated Department departments = 1;
+}
+
+service EmployeeService {
+  // AuthLogin authenticates a user and returns JWT tokens.
+  rpc AuthLogin(LoginRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  // AuthLogout invalidates the current JWT token.
+  rpc AuthLogout(google.protobuf.Empty) returns (ApiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/logout"
+    };
+  }
+
+  // GetEmployees retrieves a list of employees with optional filters.
+  rpc GetEmployees(GetEmployeesRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/employees"
+    };
+  }
+
+  // CreateEmployee creates a new employee.
+  rpc CreateEmployee(Employee) returns (ApiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/employees"
+      body: "*"
+    };
+  }
+
+  // GetEmployeesByID retrieves an employee by ID.
+  rpc GetEmployeesByID(GetEmployeeByIDRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/employees/{id}"
+    };
+  }
+
+  // UpdateEmployee updates an employee's details.
+  rpc UpdateEmployee(UpdateEmployeeRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/employees/{id}"
+      body: "employee"
+    };
+  }
+
+  // DeleteEmployee deletes an employee.
+  rpc DeleteEmployee(DeleteEmployeeRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/employees/{id}"
+    };
+  }
+
+  // RequestVacation adds vacation days for an employee.
+  rpc RequestVacation(RequestVacationRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/employees/{id}/vacation"
+      body: "vacation"
+    };
+  }
+
+  // GetDepartments retrieves a list of departments.
+  rpc GetDepartments(google.protobuf.Empty) returns (ApiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/departments"
+    };
+  }
+
+  // CreateDepartment creates a new department.
+  rpc CreateDepartment(DepartmentForm) returns (ApiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/departments"
+      body: "*"
+    };
+  }
+
+  // GetDepartmentByID retrieves a department by ID.
+  rpc GetDepartmentByID(GetDepartmentByIDRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/departments/{id}"
+    };
+  }
+
+  // UpdateDepartment updates a department's details.
+  rpc UpdateDepartment(UpdateDepartmentRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/departments/{id}"
+      body: "department"
+    };
+  }
+
+  // DeleteDepartment deletes a department.
+  rpc DeleteDepartment(DeleteDepartmentRequest) returns (ApiResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/departments/{id}"
+    };
+  }
+}
+
+// GetEmployeeByIDRequest contains the ID for retrieving an employee.
+message GetEmployeeByIDRequest {
+  uint64 id = 1;
+}
+
+// UpdateEmployeeRequest contains the ID and employee data for updating.
+message UpdateEmployeeRequest {
+  uint64 id = 1;
+  Employee employee = 2;
+}
+
+// DeleteEmployeeRequest contains the ID for deleting an employee.
+message DeleteEmployeeRequest {
+  uint64 id = 1;
+}
+
+// RequestVacationRequest contains the ID and vacation data.
+message RequestVacationRequest {
+  uint64 id = 1;
+  VacationRequest vacation = 2;
+}
+
+// GetDepartmentByIDRequest contains the ID for retrieving a department.
+message GetDepartmentByIDRequest {
+  uint64 id = 1;
+}
+
+// UpdateDepartmentRequest contains the ID and department data for updating.
+message UpdateDepartmentRequest {
+  uint64 id = 1;
+  DepartmentForm department = 2;
+}
+
+// DeleteDepartmentRequest contains the ID for deleting a department.
+message DeleteDepartmentRequest {
+  uint64 id = 1;
+}

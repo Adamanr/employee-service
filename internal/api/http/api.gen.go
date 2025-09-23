@@ -75,14 +75,14 @@ type DepartmentForm struct {
 	// Description Описание департамента
 	Description *string `json:"description"`
 
-	// HeadId ID руководителя департамента
-	HeadId *uint `json:"head_id"`
+	// HeadID ID руководителя департамента
+	HeadID *uint64 `json:"head_id"`
 
 	// Name Название департамента
 	Name string `json:"name"`
 
-	// ParentId ID родительского департамента
-	ParentId *uint `json:"parent_id"`
+	// ParentID ID родительского департамента
+	ParentID *uint64 `json:"parent_id"`
 }
 
 // Employee defines model for Employee.
@@ -96,8 +96,8 @@ type Employee struct {
 	// CreatedAt Дата создания записи
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 
-	// DepartmentId ID департамента
-	DepartmentId *uint `json:"department_id"`
+	// DepartmentID ID департамента
+	DepartmentID *uint64 `json:"department_id"`
 
 	// Email Email сотрудника (уникальный)
 	Email *string `json:"email"`
@@ -111,8 +111,8 @@ type Employee struct {
 	// HireDate Дата приема на работу
 	HireDate *time.Time `json:"hire_date"`
 
-	// Id Уникальный идентификатор сотрудника
-	Id *uint `json:"id,omitempty"`
+	// ID Уникальный идентификатор сотрудника
+	ID *uint64 `json:"id,omitempty"`
 
 	// IsActive Активен ли сотрудник
 	IsActive *bool `json:"is_active,omitempty"`
@@ -120,8 +120,8 @@ type Employee struct {
 	// LastName Фамилия сотрудника
 	LastName string `json:"last_name"`
 
-	// ManagerId ID руководителя
-	ManagerId *uint `json:"manager_id"`
+	// ManagerID ID руководителя
+	ManagerID *uint64 `json:"manager_id"`
 
 	// MiddleName Отчество сотрудника
 	MiddleName *string `json:"middle_name"`
@@ -180,8 +180,8 @@ type GetEmployeesParams struct {
 	// Role Фильтр по роли (admin, hr, manager, employee)
 	Role *string `form:"role,omitempty" json:"role,omitempty"`
 
-	// DepartmentId Фильтр по ID департамента
-	DepartmentId *int `form:"department_id,omitempty" json:"department_id,omitempty"`
+	// DepartmentID Фильтр по ID департамента
+	DepartmentID *uint64 `form:"department_id,omitempty" json:"department_id,omitempty"`
 
 	// Status Фильтр по статусу (active, fired, suspended)
 	Status *string `form:"status,omitempty" json:"status,omitempty"`
@@ -289,13 +289,13 @@ type ServerInterface interface {
 	CreateDepartment(w http.ResponseWriter, r *http.Request)
 	// Удаление департамента
 	// (DELETE /departments/{id})
-	DeleteDepartment(w http.ResponseWriter, r *http.Request, id int)
+	DeleteDepartment(w http.ResponseWriter, r *http.Request, id uint64)
 	// Получение департамента по ID
 	// (GET /departments/{id})
-	GetDepartmentByID(w http.ResponseWriter, r *http.Request, id int)
+	GetDepartmentByID(w http.ResponseWriter, r *http.Request, id uint64)
 	// Обновление департамента
 	// (PUT /departments/{id})
-	UpdateDepartment(w http.ResponseWriter, r *http.Request, id int)
+	UpdateDepartment(w http.ResponseWriter, r *http.Request, id uint64)
 	// Получение списка сотрудников
 	// (GET /employees)
 	GetEmployees(w http.ResponseWriter, r *http.Request, params GetEmployeesParams)
@@ -304,16 +304,16 @@ type ServerInterface interface {
 	CreateEmployee(w http.ResponseWriter, r *http.Request)
 	// Удаление сотрудника
 	// (DELETE /employees/{id})
-	DeleteEmployee(w http.ResponseWriter, r *http.Request, id int)
+	DeleteEmployee(w http.ResponseWriter, r *http.Request, id uint64)
 	// Получение сотрудника по ID
 	// (GET /employees/{id})
-	GetEmployeesByID(w http.ResponseWriter, r *http.Request, id int)
+	GetEmployeesByID(w http.ResponseWriter, r *http.Request, id uint64)
 	// Обновление сотрудника
 	// (PUT /employees/{id})
-	UpdateEmployee(w http.ResponseWriter, r *http.Request, id int)
+	UpdateEmployee(w http.ResponseWriter, r *http.Request, id uint64)
 	// Запрос отпуска
 	// (POST /employees/{id}/vacation)
-	RequestVacation(w http.ResponseWriter, r *http.Request, id int)
+	RequestVacation(w http.ResponseWriter, r *http.Request, id uint64)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -346,19 +346,19 @@ func (_ Unimplemented) CreateDepartment(w http.ResponseWriter, r *http.Request) 
 
 // Удаление департамента
 // (DELETE /departments/{id})
-func (_ Unimplemented) DeleteDepartment(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) DeleteDepartment(w http.ResponseWriter, r *http.Request, id uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Получение департамента по ID
 // (GET /departments/{id})
-func (_ Unimplemented) GetDepartmentByID(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) GetDepartmentByID(w http.ResponseWriter, r *http.Request, id uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Обновление департамента
 // (PUT /departments/{id})
-func (_ Unimplemented) UpdateDepartment(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) UpdateDepartment(w http.ResponseWriter, r *http.Request, id uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -376,25 +376,25 @@ func (_ Unimplemented) CreateEmployee(w http.ResponseWriter, r *http.Request) {
 
 // Удаление сотрудника
 // (DELETE /employees/{id})
-func (_ Unimplemented) DeleteEmployee(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) DeleteEmployee(w http.ResponseWriter, r *http.Request, id uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Получение сотрудника по ID
 // (GET /employees/{id})
-func (_ Unimplemented) GetEmployeesByID(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) GetEmployeesByID(w http.ResponseWriter, r *http.Request, id uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Обновление сотрудника
 // (PUT /employees/{id})
-func (_ Unimplemented) UpdateEmployee(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) UpdateEmployee(w http.ResponseWriter, r *http.Request, id uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Запрос отпуска
 // (POST /employees/{id}/vacation)
-func (_ Unimplemented) RequestVacation(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) RequestVacation(w http.ResponseWriter, r *http.Request, id uint64) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -493,7 +493,7 @@ func (siw *ServerInterfaceWrapper) DeleteDepartment(w http.ResponseWriter, r *ht
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id uint64
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
@@ -524,7 +524,7 @@ func (siw *ServerInterfaceWrapper) GetDepartmentByID(w http.ResponseWriter, r *h
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id uint64
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
@@ -555,7 +555,7 @@ func (siw *ServerInterfaceWrapper) UpdateDepartment(w http.ResponseWriter, r *ht
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id uint64
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
@@ -604,7 +604,7 @@ func (siw *ServerInterfaceWrapper) GetEmployees(w http.ResponseWriter, r *http.R
 
 	// ------------- Optional query parameter "department_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "department_id", r.URL.Query(), &params.DepartmentId)
+	err = runtime.BindQueryParameter("form", true, false, "department_id", r.URL.Query(), &params.DepartmentID)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "department_id", Err: err})
 		return
@@ -655,7 +655,7 @@ func (siw *ServerInterfaceWrapper) DeleteEmployee(w http.ResponseWriter, r *http
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id uint64
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
@@ -686,7 +686,7 @@ func (siw *ServerInterfaceWrapper) GetEmployeesByID(w http.ResponseWriter, r *ht
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id uint64
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
@@ -717,7 +717,7 @@ func (siw *ServerInterfaceWrapper) UpdateEmployee(w http.ResponseWriter, r *http
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id uint64
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
@@ -748,7 +748,7 @@ func (siw *ServerInterfaceWrapper) RequestVacation(w http.ResponseWriter, r *htt
 	var err error
 
 	// ------------- Path parameter "id" -------------
-	var id int
+	var id uint64
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {

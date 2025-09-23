@@ -2,10 +2,10 @@ package database
 
 import (
 	"context"
-	"employes_service/internal/config"
 	"fmt"
 	"log/slog"
 
+	"github.com/adamanr/employes_service/internal/config"
 	"github.com/jackc/pgx/v5"
 )
 

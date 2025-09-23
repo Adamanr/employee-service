@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Server struct {
 		Host              string        `toml:"host"`
+		GrpcHost          string        `toml:"grpc_host"`
 		WriteTimeout      time.Duration `toml:"write_timeout"`
 		ReadTimeout       time.Duration `toml:"read_timeout"`
 		ReadHeaderTimeout time.Duration `toml:"read_header_timeout"`
@@ -24,13 +25,11 @@ type Config struct {
 		Database string `toml:"database"`
 	} `toml:"database"`
 	Redis struct {
-		RedisAddr          string        `toml:"redis_addr"`
-		RedisPassword      string        `toml:"redis_password"`
-		RedisDB            int           `toml:"redis_db"`
-		AccessTokenTTL     time.Duration `toml:""`
-		RefreshTokenTTL    time.Duration `toml:""`
-		StrAccessTokenTTL  string        `toml:"access_token_ttl"`
-		StrRefreshTokenTTL string        `toml:"refresh_token_ttl"`
+		RedisAddr       string        `toml:"redis_addr"`
+		RedisPassword   string        `toml:"redis_password"`
+		RedisDB         int           `toml:"redis_db"`
+		AccessTokenTTL  time.Duration `toml:"access_token_ttl"`
+		RefreshTokenTTL time.Duration `toml:"refresh_token_ttl"`
 	} `toml:"redis"`
 }
 

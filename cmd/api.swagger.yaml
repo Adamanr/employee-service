@@ -59,6 +59,8 @@ components:
           type: integer
           format: uint
           description: Уникальный идентификатор сотрудника
+          x-go-name: ID
+          x-go-type: uint64
         first_name:
           type: string
           description: Имя сотрудника
@@ -98,6 +100,8 @@ components:
           format: uint
           nullable: true
           description: ID департамента
+          x-go-name: DepartmentID
+          x-go-type: uint64
         position:
           type: string
           nullable: true
@@ -107,6 +111,8 @@ components:
           format: uint
           nullable: true
           description: ID руководителя
+          x-go-name: ManagerID
+          x-go-type: uint64
         hire_date:
           type: string
           format: date-time
@@ -156,6 +162,7 @@ components:
           type: integer
           format: uint
           description: Уникальный идентификатор департамента
+          x-go-name: ID
         name:
           type: string
           description: Название департамента
@@ -168,11 +175,15 @@ components:
           format: uint
           nullable: true
           description: ID родительского департамента
+          x-go-name: ParentID
+          x-go-type: uint64
         head_id:
           type: integer
           format: uint
           nullable: true
           description: ID руководителя департамента
+          x-go-name: HeadID
+          x-go-type: uint64
         created_at:
           type: string
           format: date-time
@@ -198,12 +209,15 @@ components:
           format: uint
           nullable: true
           description: ID родительского департамента
+          x-go-name: ParentID
+          x-go-type: uint64
         head_id:
           type: integer
           format: uint
           nullable: true
           description: ID руководителя департамента
-
+          x-go-name: HeadID
+          x-go-type: uint64
     LoginRequest:
       type: object
       required:
@@ -298,8 +312,10 @@ paths:
         - name: department_id
           in: query
           description: Фильтр по ID департамента
+          x-go-name: DepartmentID
           schema:
             type: integer
+            x-go-type: uint64
         - name: status
           in: query
           description: Фильтр по статусу (active, fired, suspended)
@@ -366,6 +382,8 @@ paths:
           required: true
           schema:
             type: integer
+            x-go-name: ID
+            x-go-type: uint64
       responses:
         '200':
           description: Данные сотрудника
@@ -399,6 +417,8 @@ paths:
           required: true
           schema:
             type: integer
+            x-go-name: ID
+            x-go-type: uint64
       requestBody:
         required: true
         content:
@@ -444,6 +464,8 @@ paths:
           required: true
           schema:
             type: integer
+            x-go-name: ID
+            x-go-type: uint64
       responses:
         '204':
           description: Сотрудник удален
@@ -474,6 +496,8 @@ paths:
           required: true
           schema:
             type: integer
+            x-go-name: ID
+            x-go-type: uint64
       requestBody:
         required: true
         content:
@@ -575,6 +599,8 @@ paths:
           required: true
           schema:
             type: integer
+            x-go-name: ID
+            x-go-type: uint64
       responses:
         '200':
           description: Данные департамента
@@ -608,6 +634,8 @@ paths:
           required: true
           schema:
             type: integer
+            x-go-name: ID
+            x-go-type: uint64
       requestBody:
         required: true
         content:
@@ -653,6 +681,8 @@ paths:
           required: true
           schema:
             type: integer
+            x-go-name: ID
+            x-go-type: uint64
       responses:
         '204':
           description: Департамент удален

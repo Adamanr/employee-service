@@ -1,22 +1,32 @@
 package main
 
 import (
-	"employes_service/internal/api"
-	"employes_service/internal/config"
-	"employes_service/internal/database"
-	logging "employes_service/internal/utils"
+	"context"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"strconv"
 
+	grpc_api "github.com/adamanr/employes_service/internal/api/grpc"
+	pb "github.com/adamanr/employes_service/internal/api/grpc/proto"
+	api "github.com/adamanr/employes_service/internal/api/http"
+	"github.com/adamanr/employes_service/internal/config"
+	"github.com/adamanr/employes_service/internal/controllers"
+	"github.com/adamanr/employes_service/internal/database"
+	logging "github.com/adamanr/employes_service/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
+	ctx := context.Background()
+
 	logger, err := logging.SetupLogger("server.log", slog.LevelInfo)
 	if err != nil {
 		log.Fatal("Failed to setup logger:", err)
@@ -51,10 +61,46 @@ func main() {
 	)
 	prometheus.MustRegister(httpRequestsTotal)
 
+	deps := &controllers.Dependens{
+		DB:     db,
+		Config: cfg,
+		Redis:  rdb,
+		Logger: logger,
+	}
+
+	grpcServer := grpc.NewServer()
+	grpcMyServer := grpc_api.NewServer(deps)
+	pb.RegisterEmployeeServiceServer(grpcServer, grpcMyServer)
+
+	netConfig := net.ListenConfig{}
+
+	lis, err := netConfig.Listen(ctx, "tcp", cfg.Server.GrpcHost)
+	if err != nil {
+		log.Fatalf("Failed to listen for gRPC: %v", err)
+	}
+
+	go func() {
+		logger.Info("gRPC server is starting", slog.String("address", "localhost:50051"))
+		if err = grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC server: %v", err)
+		}
+	}()
+
+	gwMux := runtime.NewServeMux()
+
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	if err = pb.RegisterEmployeeServiceHandlerFromEndpoint(
+		ctx,
+		gwMux,
+		cfg.Server.GrpcHost,
+		opts,
+	); err != nil {
+		log.Fatalf("Failed to register gRPC-Gateway: %v", err)
+	}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
-
 	r.Use(logging.Middleware(logger))
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -65,18 +111,19 @@ func main() {
 	})
 
 	r.Handle("/metrics", promhttp.Handler())
+	r.Mount("/api/v1", gwMux) // gRPC-Gateway
 
-	server := api.NewServer(cfg, db, rdb, logger)
-	h := api.HandlerFromMux(server, r)
+	server := api.NewServer(deps)
+	r.Mount("/rest/v1", api.HandlerFromMux(server, chi.NewRouter()))
 
 	s := &http.Server{
-		Handler:           h,
+		Handler:           r,
 		Addr:              cfg.Server.Host,
 		WriteTimeout:      cfg.Server.WriteTimeout,
 		ReadTimeout:       cfg.Server.ReadTimeout,
 		ReadHeaderTimeout: cfg.Server.ReadHeaderTimeout,
 	}
 
-	logger.Info("Server is starting", slog.String("address", cfg.Server.Host))
+	logger.Info("HTTP server is starting", slog.String("address", cfg.Server.Host))
 	log.Fatal(s.ListenAndServe())
 }
