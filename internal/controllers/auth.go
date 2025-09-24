@@ -29,10 +29,10 @@ func NewAuthController(deps *Dependens) *AuthController {
 }
 
 func (c *AuthController) AuthLogin(req *entity.LoginRequest) (string, string, error) {
-	var emp entity.Employee
-	if err := c.deps.DB.QueryRow(context.Background(), "SELECT id, email, password, role FROM employees WHERE email = $1", req.Email).Scan(
-		&emp.ID, &emp.Email, &emp.Password, &emp.Role,
-	); err != nil {
+	var id uint64
+	var email, password, role string
+
+	if err := c.deps.DB.QueryRow(context.Background(), "SELECT id, email, password, role FROM employees WHERE email = $1", req.Email).Scan(&id, &email, &password, &role); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			c.deps.Logger.Warn("user with this email not found", slog.String("email", req.Email))
 			return "", "", errors.New("user with this email not found")
@@ -42,33 +42,36 @@ func (c *AuthController) AuthLogin(req *entity.LoginRequest) (string, string, er
 		return "", "", err
 	}
 
+	emp := entity.Employee{
+		ID:       &id,
+		Email:    &email,
+		Password: &password,
+		Role:     role,
+	}
+
 	if err := bcrypt.CompareHashAndPassword([]byte(*emp.Password), []byte(req.Password)); err != nil {
 		c.deps.Logger.Warn("Invalid password", slog.String("email", req.Email))
 		return "", "", err
 	}
 
-	refreshToken, err := c.createToken(emp, "refresh")
-	if err != nil {
-		c.deps.Logger.Error("Error creating refresh token", slog.String("error", err.Error()))
-		return "", "", err
-	}
-
 	accessToken, err := c.createToken(emp, "access")
 	if err != nil {
-		c.deps.Logger.Error("Error creating access token", slog.String("error", err.Error()))
 		return "", "", err
 	}
 
-	c.deps.Logger.Info("Config", slog.Any("Redis", c.deps.Config.Redis))
+	refreshToken, err := c.createToken(emp, "refresh")
+	if err != nil {
+		return "", "", err
+	}
 
 	ctx := context.Background()
-	if err = c.deps.Redis.Set(ctx, "access_token:"+accessToken, emp.ID, c.deps.Config.Redis.AccessTokenTTL).Err(); err != nil {
-		c.deps.Logger.Error("Error saving access token to Redis", slog.String("error", err.Error()))
+	if err = c.deps.Redis.Set(ctx, "access_token:"+accessToken, "valid", c.deps.Config.Redis.AccessTokenTTL).Err(); err != nil {
+		c.deps.Logger.Error("Error setting access token", slog.String("error", err.Error()))
 		return "", "", err
 	}
 
-	if err = c.deps.Redis.Set(ctx, "refresh_token:"+refreshToken, emp.ID, c.deps.Config.Redis.RefreshTokenTTL).Err(); err != nil {
-		c.deps.Logger.Error("Error saving refresh token to Redis", slog.String("error", err.Error()))
+	if err = c.deps.Redis.Set(ctx, "refresh_token:"+refreshToken, "valid", c.deps.Config.Redis.RefreshTokenTTL).Err(); err != nil {
+		c.deps.Logger.Error("Error setting refresh token", slog.String("error", err.Error()))
 		return "", "", err
 	}
 

@@ -96,8 +96,9 @@ func (c *EmployeeController) CreateEmployee(emp entity.Employee) (*entity.Employ
 		return nil, errors.New("required fields: first_name, last_name, email")
 	}
 
-	if *emp.Password == "" {
-		*emp.Password = "default123"
+	if emp.Password == nil || *emp.Password == "" {
+		defaultPassword := "default123"
+		emp.Password = &defaultPassword
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(*emp.Password), bcrypt.DefaultCost)
@@ -127,22 +128,27 @@ func (c *EmployeeController) CreateEmployee(emp entity.Employee) (*entity.Employ
 	now := time.Now()
 	query = `INSERT INTO employees (first_name, last_name, middle_name, phone, personal_number, email, password, role, is_active, department_id, position, manager_id, hire_date, fire_date, birthday, address, vacation_days, sick_days, status, created_at, updated_at)
               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
-              RETURNING id`
+              RETURNING id, first_name, last_name, email, password, role, status, department_id, manager_id, position, address, phone, personal_number, middle_name, birthday, hire_date, fire_date, is_active, vacation_days, sick_days, created_at, updated_at`
 
+	var result entity.Employee
 	if err = c.deps.DB.QueryRow(context.Background(), query,
 		emp.FirstName, emp.LastName, emp.MiddleName, emp.Phone, emp.PersonalNumber,
 		emp.Email, emp.Password, emp.Role, emp.IsActive, emp.DepartmentID, emp.Position,
 		emp.ManagerID, emp.HireDate, emp.FireDate, emp.Birthday, emp.Address,
 		emp.VacationDays, emp.SickDays, emp.Status, now, now,
-	).Scan(&emp.ID); err != nil {
+	).Scan(
+		&result.ID, &result.FirstName, &result.LastName, &result.Email, &result.Password,
+		&result.Role, &result.Status, &result.DepartmentID, &result.ManagerID, &result.Position,
+		&result.Address, &result.Phone, &result.PersonalNumber, &result.MiddleName, &result.Birthday,
+		&result.HireDate, &result.FireDate, &result.IsActive, &result.VacationDays, &result.SickDays,
+		&result.CreatedAt, &result.UpdatedAt,
+	); err != nil {
 		c.deps.Logger.Error("Error inserting employee", slog.String("error", err.Error()))
 		return nil, err
 	}
 
-	emp.CreatedAt = &now
-	emp.UpdatedAt = &now
-
-	return &emp, nil
+	result.Password = nil
+	return &result, nil
 }
 
 func (c *EmployeeController) RequestVacation(id uint64, days uint64) (*entity.Employee, error) {
@@ -182,21 +188,22 @@ func (c *EmployeeController) RequestVacation(id uint64, days uint64) (*entity.Em
 }
 
 // GetPasswordHash is method to get password for update employee.
-func (c *EmployeeController) getPasswordHash(newPassword *string, employeeID uint64) (*string, error) {
+func (c *EmployeeController) getPasswordHash(newPassword *string, employeeID uint64) (string, error) {
 	if newPassword != nil {
 		hash, err := bcrypt.GenerateFromPassword([]byte(*newPassword), bcrypt.DefaultCost)
 		if err != nil {
-			return nil, err
+			c.deps.Logger.Error("Error generating password hash", slog.String("error", err.Error()))
+			return "", err
 		}
 
 		hashStr := string(hash)
-		return &hashStr, nil
+		return hashStr, nil
 	}
 
 	query := `SELECT password FROM employees WHERE id = $1`
 	var currentHash string
 	err := c.deps.DB.QueryRow(context.Background(), query, employeeID).Scan(&currentHash)
-	return &currentHash, err
+	return currentHash, err
 }
 
 func (c *EmployeeController) UpdateEmployee(id uint64, emp entity.Employee) (*entity.Employee, error) {
@@ -216,8 +223,9 @@ func (c *EmployeeController) UpdateEmployee(id uint64, emp entity.Employee) (*en
 		return nil, err
 	}
 
-	emp.Password = passwordHash
+	emp.Password = &passwordHash
 
+	//nolint:goconst // Nothing.
 	query := `SELECT COUNT(*) FROM employees WHERE (email = $1 OR (personal_number IS NOT NULL AND personal_number = $2)) AND id != $3`
 
 	var exists int
