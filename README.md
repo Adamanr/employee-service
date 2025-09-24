@@ -3,7 +3,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.23.3-blue.svg)](https://golang.org/)
 [![API Version](https://img.shields.io/badge/API-v1.0.0-green.svg)](./cmd/api.swagger.yaml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-86.1%25-brightgreen)
 
 
 **Employee Service** — это современный микросервис для управления сотрудниками в рамках системы HRGate. Сервис обеспечивает полный цикл управления профилями сотрудников, организационной структурой, авторизацией и мониторингом через REST API и gRPC интерфейсы.
